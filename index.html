@@ -1,0 +1,1584 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101014">
+  <title>luma — Dein Stream, deine Bühne</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+    :root {
+      color-scheme: dark;
+      --bg: #101014;
+      --panel: #17171d;
+      --panel-soft: #1d1d25;
+      --line: #2b2a34;
+      --muted: #92919e;
+      --text: #f4f2f8;
+      --purple: #a78bfa;
+      --pink: #f18ad7;
+      --green: #8ee5b2;
+      --font: "DM Sans", sans-serif;
+      --display: "Space Grotesk", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      background:
+        radial-gradient(ellipse at 58% -20%, rgba(110, 70, 170, .14), transparent 48%),
+        var(--bg);
+      color: var(--text);
+      font: 14px var(--font);
+    }
+
+    button, input { font: inherit; }
+    button { color: inherit; }
+    .app { min-height: 100vh; }
+    .topbar {
+      height: 70px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 34px;
+      background: rgba(16, 16, 20, .92);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      backdrop-filter: blur(16px);
+    }
+    .brand { display: flex; align-items: center; gap: 11px; min-width: 230px; }
+    .brand-mark {
+      width: 33px; height: 33px; border-radius: 11px;
+      display: grid; place-items: center; color: #18131e;
+      background: linear-gradient(135deg, #c4a7ff, #f5a1de);
+      box-shadow: 0 5px 20px #a78bfa30;
+    }
+    .brand-mark svg { width: 18px; }
+    .brand-name { font: 700 20px var(--display); letter-spacing: -.7px; }
+    .brand-tag { color: var(--muted); font-size: 11px; margin-left: 4px; }
+    .top-actions { display: flex; align-items: center; gap: 17px; }
+    .connection { display: flex; align-items: center; gap: 8px; color: #b8b7c2; font-size: 12px; }
+    .dot { height: 7px; width: 7px; border-radius: 50%; background: #e6ad69; box-shadow: 0 0 12px #e6ad6960; }
+    .button {
+      border: 1px solid var(--line);
+      background: var(--panel-soft);
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: .18s ease;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      font-weight: 600;
+    }
+    .button:hover { transform: translateY(-1px); border-color: #575365; background: #24232d; }
+    .button svg { width: 15px; height: 15px; }
+    .button.primary {
+      color: #18131e; border: 0;
+      background: linear-gradient(110deg, #c0a6ff, #f2a0dc);
+      box-shadow: 0 4px 16px #b28af930;
+    }
+    .button.primary:hover { filter: brightness(1.08); }
+    .button.twitch {
+      background: #9146ff; border-color: #9146ff; color: white;
+    }
+    .button.twitch:hover { background: #a15dff; }
+    .icon-button {
+      border: 1px solid var(--line); background: var(--panel); border-radius: 9px;
+      width: 36px; height: 36px; display: grid; place-items: center; cursor: pointer;
+    }
+    .icon-button svg { width: 16px; color: #b3b1bf; }
+
+    main { max-width: 1500px; margin: auto; padding: 35px 34px 48px; }
+    .welcome {
+      display: flex; justify-content: space-between; align-items: end; margin-bottom: 27px;
+    }
+    .eyebrow { color: var(--purple); font-size: 11px; text-transform: uppercase; letter-spacing: 1.7px; font-weight: 700; }
+    h1 { font: 600 clamp(25px, 3vw, 34px) var(--display); letter-spacing: -1.4px; margin: 8px 0 6px; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 13px; }
+    .session-pill {
+      padding: 9px 12px; background: #1a1a21; border: 1px solid var(--line);
+      border-radius: 999px; color: #b5b3c0; font-size: 11px; display: flex; align-items: center; gap: 8px;
+    }
+    .layout {
+      display: grid; grid-template-columns: minmax(0, 1fr) 300px;
+      gap: 18px; align-items: start;
+    }
+    .workspace { min-width: 0; }
+    .panel {
+      background: linear-gradient(145deg, #19191f, #16161b);
+      border: 1px solid var(--line); border-radius: 15px;
+    }
+    .preview-panel { overflow: hidden; }
+    .panel-heading {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 18px;
+    }
+    .panel-title { font-weight: 700; font-size: 13px; display: flex; gap: 9px; align-items: center; }
+    .panel-title svg { width: 16px; color: #b6a0f8; }
+    .tiny-label { color: #8e8c99; font-size: 11px; display: flex; align-items: center; gap: 7px; }
+    .tiny-live { color: #ff8fa6; text-transform: uppercase; letter-spacing: .6px; font-size: 10px; font-weight: 700; }
+    .preview {
+      margin: 0 13px; aspect-ratio: 16 / 8.3; min-height: 265px; max-height: 500px;
+      position: relative; overflow: hidden; border-radius: 11px;
+      background:
+        radial-gradient(ellipse at 50% 55%, #4a2a72 0, transparent 35%),
+        radial-gradient(ellipse at 15% 90%, #372253 0, transparent 43%),
+        linear-gradient(140deg, #171324, #211b32 50%, #11131a);
+      display: grid; place-items: center; text-align: center;
+    }
+    .preview::before, .preview::after {
+      content: ""; position: absolute; border: 1px solid #c4a6ff16; border-radius: 50%;
+      width: 390px; height: 390px; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    }
+    .preview::after { width: 500px; height: 500px; }
+    .preview::before, .preview::after { display: none; }
+    .preview { background: #050607; }
+    .preview-grid {
+      position: absolute; inset: 0; opacity: .13;
+      background-image: linear-gradient(#a98be51a 1px, transparent 1px), linear-gradient(90deg, #a98be51a 1px, transparent 1px);
+      background-size: 48px 48px; mask-image: linear-gradient(transparent, black 25%, black 80%, transparent);
+    }
+    .preview-content { z-index: 1; padding: 25px; }
+    .preview-kicker { color: #d4b5ff; text-transform: uppercase; letter-spacing: 3px; font-size: 10px; font-weight: 700; }
+    .preview h2 { font: 600 clamp(28px, 4vw, 47px) var(--display); letter-spacing: -2px; margin: 14px 0 7px; }
+    .preview-description { color: #c1baca; font-size: 13px; }
+    .preview-status {
+      display: inline-flex; align-items: center; gap: 7px; padding: 7px 10px;
+      margin-top: 19px; border-radius: 100px; border: 1px solid #ffffff17; background: #0c0b12a6; color: #d6d0e0; font-size: 10px;
+    }
+    .preview-status .dot { background: #b8a1ff; }
+    .stream-chat-overlay {
+      position: absolute; z-index: 2; left: 0; bottom: 18%;
+      width: clamp(130px, 20%, 240px); height: clamp(112px, 40%, 230px);
+      border: 3px solid #23bd91; background: #17191de8;
+      box-shadow: 0 8px 24px #0004; overflow: hidden;
+      display: flex; flex-direction: column; text-align: left;
+    }
+    .stream-chat-header {
+      min-height: 17px; padding: 0 5px;
+      background: #23bd91; color: #effff9; display: flex;
+      align-items: center; justify-content: space-between;
+      font-size: 8px; font-weight: 700; letter-spacing: .8px;
+    }
+    .stream-chat-header svg { width: 12px; height: 12px; }
+    .stream-chat-messages {
+      flex: 1; overflow: hidden; padding: 7px 6px;
+      display: flex; flex-direction: column; justify-content: flex-end; gap: 5px;
+      color: #f4f2f8;
+    }
+    .stream-chat-message { font-size: clamp(8px, .8vw, 10px); line-height: 1.35; overflow-wrap: anywhere; text-shadow: 0 1px 2px #000; }
+    .stream-chat-message .username { font-weight: 700; color: #78e6c2; margin-right: 4px; }
+    .stream-chat-message:nth-child(2n) .username { color: #f0a3ca; }
+    .stream-chat-message:nth-child(3n) .username { color: #c6aaff; }
+    .stream-chat-message .mod { color: #5dd8c4; font-size: 8px; margin-right: 3px; }
+    .preview-controls { position: absolute; inset: 0; padding: 15px; display: flex; align-items: flex-start; justify-content: space-between; pointer-events: none; }
+    .preview-badge, .aspect-badge {
+      padding: 6px 9px; border-radius: 7px; background: #0d0c12c4; border: 1px solid #ffffff19;
+      color: #dedbe5; font-size: 10px; pointer-events: auto;
+    }
+    .preview-badge { display: flex; align-items: center; gap: 7px; }
+    .preview-badge svg { width: 13px; color: var(--pink); }
+    .preview-toolbar { display: flex; align-items: center; gap: 8px; padding: 13px 14px; }
+    .preview-toolbar .spacer { flex: 1; }
+    .source-info { color: var(--muted); font-size: 11px; padding-left: 4px; }
+
+    .section-heading { display: flex; justify-content: space-between; align-items: center; margin: 27px 1px 12px; }
+    .section-heading h3 { font: 600 15px var(--display); margin: 0; }
+    .section-heading span { color: var(--muted); font-size: 11px; }
+    .scenes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 11px; }
+    .scene {
+      text-align: left; padding: 0; overflow: hidden; cursor: pointer;
+      border-radius: 12px; border: 1px solid var(--line); background: var(--panel);
+      transition: .18s ease; min-width: 0;
+    }
+    .scene:hover { transform: translateY(-2px); border-color: #605a70; }
+    .scene.active { border-color: #b395ff; box-shadow: 0 0 0 1px #b395ff52, 0 7px 22px #9d78e61c; }
+    .scene-thumb {
+      height: 84px; display: grid; place-items: center; position: relative; overflow: hidden;
+      background: radial-gradient(ellipse at 50% 100%, #654487, transparent 60%), linear-gradient(130deg, #201c2d, #15151d);
+    }
+    .scene-thumb svg { width: 23px; height: 23px; color: #d2c0fc; position: relative; z-index: 1; }
+    .scene:nth-child(2) .scene-thumb { background: radial-gradient(circle at 50% 50%, #74437c, transparent 50%), #211822; }
+    .scene:nth-child(3) .scene-thumb { background: radial-gradient(circle at 50% 50%, #284e50, transparent 55%), #151e21; }
+    .scene:nth-child(4) .scene-thumb { background: radial-gradient(circle at 50% 50%, #533f72, transparent 55%), #191721; }
+    .scene-thumb::after { content: ""; position: absolute; inset: 0; opacity: .2; background: repeating-linear-gradient(0deg, transparent 0 11px, #ffffff14 12px); }
+    .scene-name { padding: 10px 11px 11px; display: flex; justify-content: space-between; align-items: center; gap: 4px; }
+    .scene-name strong { font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .scene-name small { font-size: 10px; color: #888694; }
+    .scene-add {
+      border: 1px dashed #3b3946; border-radius: 12px; display: grid; place-items: center;
+      background: transparent; cursor: pointer; color: #aaa7b5; min-height: 122px; gap: 6px; font-size: 11px;
+    }
+    .scene-add:hover { border-color: #a78bfa; color: #d8c8ff; }
+    .scene-add svg { width: 18px; }
+
+    .right-column { display: grid; gap: 15px; }
+    .go-live-panel { padding: 17px; }
+    .go-live-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .go-live-head strong { font: 600 15px var(--display); }
+    .ready { font-size: 10px; color: var(--green); display: flex; gap: 6px; align-items: center; }
+    .ready .dot { width: 6px; height: 6px; background: var(--green); }
+    .stream-title-label { display: block; color: #a7a5b1; font-size: 11px; margin: 0 0 7px; }
+    .stream-title {
+      width: 100%; background: #111116; border: 1px solid #34333d; color: var(--text);
+      border-radius: 8px; padding: 10px 11px; outline: 0; font-size: 11px;
+    }
+    .stream-title:focus { border-color: #a78bfa; }
+    .category-row { display: flex; justify-content: space-between; align-items: center; margin: 12px 0 16px; }
+    .category-label { font-size: 11px; color: #a7a5b1; }
+    .category { font-size: 10px; color: #d8c9ff; background: #a78bfa18; border: 1px solid #a78bfa35; border-radius: 6px; padding: 5px 8px; }
+    .full-width { width: 100%; }
+    .button.big { padding: 12px 14px; font-size: 12px; }
+    .go-live-note { text-align: center; color: #7f7d89; font-size: 10px; line-height: 1.5; margin: 10px 3px 0; }
+
+    .chat-panel { overflow: hidden; display: flex; flex-direction: column; height: 385px; }
+    .chat-heading { padding: 14px 15px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+    .chat-heading strong { font-size: 12px; display: flex; align-items: center; gap: 8px; }
+    .chat-heading svg { width: 15px; color: #b6a0f8; }
+    .chat-state { color: #83818e; font-size: 10px; }
+    .chat-messages { flex: 1; padding: 14px 13px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+    .message { line-height: 1.45; font-size: 11px; overflow-wrap: anywhere; }
+    .message .username { font-weight: 700; color: #c6aaff; margin-right: 5px; }
+    .message:nth-child(2n) .username { color: #f0a3ca; }
+    .message:nth-child(3n) .username { color: #9dd7cb; }
+    .message .mod { color: #5dd8c4; font-size: 9px; margin-right: 4px; }
+    .chat-input-wrap { padding: 11px; border-top: 1px solid var(--line); }
+    .chat-input-row { position: relative; }
+    .chat-input {
+      width: 100%; border-radius: 8px; padding: 10px 38px 10px 11px;
+      background: #111116; border: 1px solid #34333d; color: white; outline: 0; font-size: 11px;
+    }
+    .chat-input:focus { border-color: #a78bfa; }
+    .send-chat {
+      position: absolute; right: 5px; top: 5px; width: 28px; height: 28px; display: grid; place-items: center;
+      background: #a78bfa; color: #17131e; border: 0; border-radius: 6px; cursor: pointer;
+    }
+    .send-chat svg { width: 14px; }
+    .chat-foot { margin-top: 8px; display: flex; justify-content: space-between; font-size: 9px; color: #777581; }
+    .chat-connect { color: #c7aaff; text-decoration: none; cursor: pointer; }
+
+    .widgets { padding: 15px; }
+    .widget-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .widget-head strong { font: 600 13px var(--display); }
+    .widget-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid #292831; }
+    .widget-info { display: flex; align-items: center; gap: 10px; }
+    .widget-icon { width: 28px; height: 28px; border-radius: 8px; background: #a78bfa16; display: grid; place-items: center; color: #c5adff; }
+    .widget-icon svg { width: 14px; }
+    .widget-label strong { display: block; font-size: 10px; font-weight: 600; }
+    .widget-label small { color: #85838f; font-size: 9px; }
+    .switch { appearance: none; width: 30px; height: 17px; border-radius: 20px; background: #3c3b45; cursor: pointer; position: relative; transition: .2s; }
+    .switch::after { content: ""; width: 11px; height: 11px; position: absolute; left: 3px; top: 3px; border-radius: 50%; background: #bbb9c3; transition: .2s; }
+    .switch:checked { background: #9e80e6; }
+    .switch:checked::after { transform: translateX(13px); background: white; }
+    .widget-config { color: #a78bfa; font-size: 10px; background: none; border: 0; padding: 10px 0 0; cursor: pointer; }
+    .footer-note { color: #716f7a; text-align: center; font-size: 10px; padding-top: 19px; }
+
+    .toast {
+      position: fixed; bottom: 22px; left: 50%; transform: translate(-50%, 15px);
+      background: #282630; color: #f2eff7; padding: 12px 17px; border: 1px solid #464351;
+      border-radius: 10px; box-shadow: 0 10px 35px #0008; opacity: 0; pointer-events: none;
+      z-index: 10; transition: .22s; font-size: 12px; max-width: calc(100vw - 30px); text-align: center;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0; background: #08070bc9; z-index: 20;
+      align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px);
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal { width: min(410px, 100%); padding: 25px; border: 1px solid #393743; border-radius: 16px; background: #1b1a21; box-shadow: 0 25px 90px #0009; }
+    .modal-icon { width: 42px; height: 42px; display: grid; place-items: center; color: white; background: #9146ff; border-radius: 12px; margin-bottom: 17px; }
+    .modal-icon svg { width: 22px; }
+    .modal h2 { margin: 0 0 9px; font: 600 21px var(--display); }
+    .modal p { color: #a5a3af; font-size: 12px; line-height: 1.6; margin: 0 0 17px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 9px; }
+
+    @media (max-width: 1000px) {
+      main { padding: 28px 22px 40px; }
+      .topbar { padding: 0 22px; }
+      .layout { grid-template-columns: minmax(0, 1fr) 275px; gap: 13px; }
+      .scenes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .scene-thumb { height: 100px; }
+    }
+    @media (max-width: 720px) {
+      .topbar { height: 62px; padding: 0 16px; }
+      .brand { min-width: 0; }
+      .brand-tag, .connection { display: none; }
+      .top-actions { gap: 9px; }
+      .top-actions .button { padding: 9px 10px; font-size: 11px; }
+      main { padding: 25px 15px 35px; }
+      .welcome { align-items: flex-start; }
+      .session-pill { display: none; }
+      .layout { grid-template-columns: 1fr; }
+      .right-column { grid-template-columns: 1fr; }
+      .preview { min-height: 230px; aspect-ratio: 16 / 9; }
+      .stream-chat-overlay { bottom: 14%; width: 27%; height: 43%; min-width: 112px; }
+      .preview h2 { font-size: clamp(25px, 8vw, 38px); }
+      .preview-toolbar { flex-wrap: wrap; }
+      .source-info { display: none; }
+      .chat-panel { height: 345px; }
+      .scenes { gap: 8px; }
+      .scene-thumb { height: 80px; }
+      .scene-add { min-height: 118px; }
+    }
+    @media (max-width: 390px) {
+      .button.twitch span { display: none; }
+      .button.twitch { width: 37px; height: 37px; padding: 0; }
+      .scene-name { padding: 9px; }
+    }
+
+    :root {
+      --bg: #111214;
+      --panel: #1d1f21;
+      --panel-soft: #282a2c;
+      --line: #303235;
+      --muted: #a3a6a7;
+      --purple: #34c69a;
+      --green: #43d6a7;
+    }
+    body {
+      min-height: 100vh;
+      background: #111214;
+    }
+    .topbar {
+      height: 64px;
+      padding: 0 23px;
+      background: #191a1c;
+      border-bottom-color: #2c2e30;
+      position: relative;
+    }
+    .brand { min-width: 0; }
+    .brand-mark {
+      color: #f5fff9;
+      background: #20ae82;
+      border-radius: 8px;
+      box-shadow: none;
+    }
+    .button.primary {
+      background: #22b889;
+      color: #071710;
+      box-shadow: none;
+    }
+    .button.primary:hover { background: #35c999; }
+    .layout {
+      height: calc(100vh - 64px);
+      min-height: 550px;
+      grid-template-columns: 238px minmax(0, 1fr);
+      gap: 0;
+      align-items: stretch;
+    }
+    main { max-width: none; margin: 0; padding: 0; }
+    .welcome { display: none; }
+    .right-column {
+      grid-column: 1;
+      grid-row: 1;
+      min-height: 0;
+      overflow-y: auto;
+      align-content: start;
+      gap: 12px;
+      padding: 16px 13px;
+      background: #1c1d1f;
+      border-right: 1px solid #303235;
+    }
+    .workspace {
+      grid-column: 2;
+      grid-row: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) 31px 117px;
+      background: #111214;
+    }
+    .preview-panel {
+      min-height: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+    }
+    .panel-heading {
+      flex: 0 0 43px;
+      padding: 0 20px;
+    }
+    .panel-title svg, .chat-heading svg { color: #37c99a; }
+    .preview {
+      flex: none;
+      width: min(calc(100% - 38px), calc((100vh - 260px) * 1.7778));
+      aspect-ratio: 16 / 9;
+      min-height: 0;
+      max-height: calc(100% - 86px);
+      margin: auto;
+      border-radius: 2px;
+      background:
+        #050607;
+      box-shadow: 0 14px 50px #0008;
+    }
+    .preview::before {
+      width: 100%;
+      height: 30%;
+      left: 0;
+      top: 70%;
+      transform: none;
+      border: 0;
+      border-radius: 0;
+      background:
+        linear-gradient(176deg, transparent 0 31%, #c6c9c5 32% 38%, #727675 39% 49%, transparent 50%),
+        linear-gradient(90deg, #d0d1ce 0 20%, transparent 20.5% 100%);
+      opacity: .8;
+    }
+    .preview::after {
+      width: 100%;
+      height: 100%;
+      inset: 0;
+      transform: none;
+      border: 0;
+      border-radius: 0;
+      background:
+        radial-gradient(circle at 78% 68%, #81b35d 0 2%, transparent 2.2%),
+        linear-gradient(90deg, transparent 0 13%, #111416 13.2% 14.5%, transparent 14.7% 86%, #121416 86.2% 87.6%, transparent 87.8%);
+      opacity: .75;
+    }
+    .preview::before, .preview::after { display: none; }
+    .preview-grid { opacity: .08; }
+    .preview-content { position: relative; z-index: 3; }
+    .preview[data-scene="live"] .preview-content { display: none; }
+    .preview[data-scene="live"] .preview-grid { display: none; }
+    .preview[data-scene="live"] .preview-offline { display: grid; }
+    .preview[data-stream-live="true"] .preview-offline { display: none; }
+    .preview:not([data-scene="live"]) .twitch-player { display: none; }
+    .twitch-player {
+      display: none;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #050607;
+    }
+    .preview[data-stream-live="true"] .twitch-player { display: block; }
+    .preview-offline {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      padding: 25px;
+      background: #101214;
+      color: #c6c9c8;
+      text-align: center;
+    }
+    .preview-offline strong { display: block; color: #f3f4f4; font: 600 clamp(17px, 2vw, 24px) var(--display); margin-bottom: 8px; }
+    .preview-offline p { max-width: 380px; color: #a4a8a7; font-size: 12px; line-height: 1.55; margin: 0; }
+    .preview-badge, .aspect-badge { background: #101213d9; }
+    .preview-badge svg { color: #35c999; }
+    .stream-chat-overlay {
+      left: 0;
+      bottom: 25%;
+      width: clamp(150px, 20%, 240px);
+      height: 40%;
+      border: 4px solid #22bd8c;
+      background: #222426ed;
+      box-shadow: 0 4px 14px #0007;
+    }
+    .stream-chat-header {
+      min-height: 22px;
+      padding: 0 7px;
+      background: #22bd8c;
+      color: #effff9;
+    }
+    .stream-chat-messages { padding: 8px 7px; gap: 6px; }
+    .stream-chat-message { font-size: clamp(9px, .8vw, 11px); }
+    .stream-chat-message .username { color: #54d9ae; }
+    .preview-toolbar {
+      flex: 0 0 43px;
+      padding: 0 20px;
+    }
+    .button:not(.twitch):not(.primary):hover { border-color: #3d8b70; }
+    .section-heading {
+      margin: 0;
+      padding: 3px 18px 0;
+      align-self: center;
+    }
+    .section-heading h3 { font: 600 12px var(--font); color: #dbddde; }
+    .section-heading > span { font-size: 10px; }
+    .scenes {
+      display: flex;
+      align-items: stretch;
+      gap: 9px;
+      overflow-x: auto;
+      padding: 0 15px 12px;
+      border-top: 1px solid #282a2c;
+    }
+    .scene {
+      flex: 0 0 139px;
+      align-self: center;
+      border-radius: 5px;
+      border-color: #36383a;
+      background: #1c1e20;
+    }
+    .scene.active {
+      border: 2px solid #21bb89;
+      box-shadow: 0 0 0 1px #21bb8940;
+    }
+    .scene-thumb {
+      height: 65px;
+      background:
+        linear-gradient(90deg, transparent 0 25%, #101517 25.5% 27%, transparent 27.5% 70%, #101517 71% 73%, transparent 74%),
+        radial-gradient(ellipse at 48% 82%, #39a982 0 5%, transparent 6%),
+        linear-gradient(180deg, #244340 0%, #594a42 51%, #27282a 52%, #151719 100%);
+    }
+    .scene:nth-child(2) .scene-thumb {
+      background:
+        linear-gradient(90deg, transparent 0 22%, #111 22.5% 24%, transparent 24.5% 72%, #111 73% 75%, transparent 75.5%),
+        radial-gradient(circle at 58% 55%, #f9be64 0 2%, transparent 3%),
+        linear-gradient(180deg, #55405e 0%, #875b65 48%, #343039 49%, #171619 100%);
+    }
+    .scene:nth-child(3) .scene-thumb {
+      background:
+        radial-gradient(circle at 75% 24%, #f4d49b 0 2%, transparent 3%),
+        linear-gradient(180deg, #334e56 0%, #526a70 47%, #55534b 48%, #222322 100%);
+    }
+    .scene:nth-child(4) .scene-thumb {
+      background:
+        radial-gradient(ellipse at 50% 100%, #695470 0 17%, transparent 18%),
+        linear-gradient(180deg, #28213a 0%, #544458 48%, #27252b 49%, #161619 100%);
+    }
+    .scene-thumb svg {
+      position: absolute;
+      right: 6px;
+      bottom: 5px;
+      width: 13px;
+      height: 13px;
+      color: white;
+      filter: drop-shadow(0 1px 3px #000);
+    }
+    .scene-name { padding: 7px 8px; }
+    .scene-name strong { font-size: 10px; }
+    .scene-add {
+      flex: 0 0 104px;
+      align-self: center;
+      min-height: 86px;
+      border-radius: 5px;
+      border-color: #3b3d3f;
+      font-size: 10px;
+      gap: 4px;
+    }
+    .scene:nth-child(1) .scene-thumb { background: #20ad81; }
+    .scene:nth-child(1) .scene-thumb svg { left: 0; right: auto; bottom: 9px; width: 21px; height: 21px; color: #11251d; }
+    .scene:nth-child(2) .scene-thumb {
+      background:
+        linear-gradient(90deg, transparent 0 15%, #141617 15.5% 17%, transparent 17.5% 78%, #141617 79% 81%, transparent 81.5%),
+        radial-gradient(ellipse at 72% 60%, #e1bc9b 0 8%, transparent 9%),
+        linear-gradient(180deg, #685270 0%, #c08d83 42%, #38453f 43%, #1e2422 100%);
+    }
+    .scene:nth-child(3) .scene-thumb {
+      background:
+        linear-gradient(90deg, transparent 0 15%, #141617 15.5% 17%, transparent 17.5% 78%, #141617 79% 81%, transparent 81.5%),
+        radial-gradient(ellipse at 68% 58%, #e2c0a0 0 9%, transparent 10%),
+        linear-gradient(180deg, #4e3961 0%, #bb7d86 42%, #3d514d 43%, #1b211f 100%);
+    }
+    .scene:nth-child(4) .scene-thumb {
+      background:
+        radial-gradient(ellipse at 48% 100%, #635273 0 20%, transparent 21%),
+        linear-gradient(180deg, #262034 0%, #564756 48%, #27252b 49%, #161619 100%);
+    }
+    .scene:nth-child(5) .scene-thumb {
+      background:
+        linear-gradient(90deg, transparent 0 21%, #101617 21.5% 23%, transparent 23.5% 73%, #101617 74% 76%, transparent 76.5%),
+        radial-gradient(circle at 55% 60%, #f1ce83 0 3%, transparent 4%),
+        linear-gradient(180deg, #344b51 0%, #677479 48%, #403e39 49%, #1e201f 100%);
+    }
+    .scene:nth-child(6) .scene-thumb {
+      background:
+        radial-gradient(circle at 50% 50%, #e2a8c6 0 7%, transparent 8%),
+        linear-gradient(135deg, #312541, #755676 48%, #1c2728 49%, #17191a);
+    }
+    .scene[data-scene="live"] .scene-thumb { background: #20ad81; }
+    .scene[data-scene="live"] .scene-thumb svg { left: 0; right: auto; bottom: 9px; width: 21px; height: 21px; color: #11251d; }
+    .scene[data-scene="starting"] .scene-thumb {
+      background:
+        linear-gradient(90deg, transparent 0 15%, #141617 15.5% 17%, transparent 17.5% 78%, #141617 79% 81%, transparent 81.5%),
+        radial-gradient(ellipse at 72% 60%, #e1bc9b 0 8%, transparent 9%),
+        linear-gradient(180deg, #685270 0%, #c08d83 42%, #38453f 43%, #1e2422 100%);
+    }
+    .scene[data-scene="brb"] .scene-thumb {
+      background:
+        linear-gradient(90deg, transparent 0 15%, #141617 15.5% 17%, transparent 17.5% 78%, #141617 79% 81%, transparent 81.5%),
+        radial-gradient(ellipse at 68% 58%, #e2c0a0 0 9%, transparent 10%),
+        linear-gradient(180deg, #4e3961 0%, #bb7d86 42%, #3d514d 43%, #1b211f 100%);
+    }
+    .scene[data-scene="ending"] .scene-thumb {
+      background:
+        radial-gradient(ellipse at 48% 100%, #635273 0 20%, transparent 21%),
+        linear-gradient(180deg, #262034 0%, #564756 48%, #27252b 49%, #161619 100%);
+    }
+    .footer-note { display: none; }
+    .sidebar-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 9px 13px;
+      border-bottom: 1px solid #343638;
+    }
+    .profile-avatar {
+      flex: 0 0 35px;
+      height: 35px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      color: #effff9;
+      background: #24b88b;
+    }
+    .profile-avatar svg { width: 18px; }
+    .profile-copy strong { display: block; font-size: 11px; }
+    .profile-copy small { color: #9da0a1; font-size: 9px; }
+    .sidebar-label {
+      color: #85898a;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin: 1px 2px -3px;
+      text-transform: uppercase;
+    }
+    .go-live-panel, .chat-panel, .widgets {
+      border-radius: 7px;
+      background: #242628;
+      border-color: #343638;
+      box-shadow: none;
+    }
+    .go-live-panel { padding: 13px 11px; }
+    .go-live-head { margin-bottom: 12px; }
+    .go-live-head strong { font: 600 12px var(--font); }
+    .ready { font-size: 9px; }
+    .stream-title {
+      background: #181a1b;
+      border-color: #3a3c3e;
+      font-size: 10px;
+      padding: 9px;
+    }
+    .category { color: #8be1c2; background: #1d755b35; border-color: #278c6c70; }
+    .go-live-note { margin-top: 8px; font-size: 9px; }
+    .chat-panel { height: 270px; }
+    .chat-heading { padding: 11px; }
+    .chat-heading strong { font-size: 11px; }
+    .chat-messages { padding: 10px; gap: 10px; }
+    .message { font-size: 10px; }
+    .chat-input-wrap { padding: 9px; }
+    .chat-input { background: #181a1b; border-color: #3a3c3e; }
+    .send-chat { background: #26bd8e; }
+    .chat-connect, .widget-config { color: #61d5ad; }
+    .widgets { padding: 12px; }
+    .widget-head strong { font-size: 11px; }
+    .widget-icon { color: #65dcb4; background: #1d755b35; }
+    .switch:checked { background: #20b889; }
+    .modal-icon { background: #20ae82; }
+    .modal-backdrop { z-index: 20; }
+    .customization-panel { padding: 12px; }
+    .customization-title {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 11px; font-weight: 700; margin-bottom: 11px;
+    }
+    .customization-title span { color: #929697; font-size: 9px; font-weight: 400; }
+    .custom-control { display: block; margin: 10px 0; color: #b7babb; font-size: 10px; }
+    .custom-control > span { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+    .custom-control output { color: #d5d8d8; }
+    .custom-control input[type="range"] { accent-color: #24bd8e; width: 100%; }
+    .custom-control input[type="color"] {
+      width: 34px; height: 24px; padding: 2px; border: 1px solid #46494a;
+      border-radius: 5px; background: #191b1c; cursor: pointer;
+    }
+    .custom-control input[type="text"], .custom-control input[type="file"] {
+      width: 100%; padding: 8px; border: 1px solid #3a3c3e; border-radius: 6px;
+      background: #181a1b; color: #f3f3f3; font-size: 10px;
+    }
+    .custom-control input[type="file"] { font-size: 9px; }
+    .custom-control input[type="number"] {
+      width: 100%; padding: 8px; border: 1px solid #3a3c3e; border-radius: 6px;
+      background: #181a1b; color: #f3f3f3; font-size: 11px;
+    }
+    .countdown-setting { margin: 8px 0 12px; }
+    .custom-control input[type="checkbox"] { accent-color: #24bd8e; }
+    .inline-control { display: flex; justify-content: space-between; align-items: center; }
+    .custom-hint { color: #8f9394; font-size: 9px; line-height: 1.5; margin: 8px 0 0; }
+    .stream-chat-overlay {
+      --overlay-accent: #22bd8c;
+      touch-action: none;
+      cursor: grab;
+      user-select: none;
+    }
+    .stream-chat-overlay:active { cursor: grabbing; }
+    .stream-chat-overlay .stream-chat-header { background: var(--overlay-accent); }
+    .stream-chat-overlay { border-color: var(--overlay-accent); }
+    .stream-chat-message .username { color: var(--overlay-accent); }
+    .stream-chat-overlay.hidden, .stream-alert.hidden { display: none; }
+    .stream-alert {
+      position: absolute;
+      z-index: 4;
+      top: 8%;
+      right: 3%;
+      max-width: 42%;
+      padding: 11px 16px;
+      border: 2px solid #22bd8c;
+      border-radius: 8px;
+      background: #191b1bea;
+      color: #f4f4f4;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 8px 28px #0007;
+      animation: alert-enter .25s ease-out;
+    }
+    .stream-alert span { color: #65dcb4; margin-right: 5px; }
+    @keyframes alert-enter {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 850px) {
+      .layout { grid-template-columns: 210px minmax(0, 1fr); }
+      .workspace { grid-template-rows: minmax(0, 1fr) 31px 105px; }
+      .scene { flex-basis: 125px; }
+    }
+    @media (max-width: 680px) {
+      .topbar { height: 60px; padding: 0 13px; }
+      .layout {
+        height: auto;
+        min-height: calc(100vh - 60px);
+        display: flex;
+        flex-direction: column;
+      }
+      main { padding: 0; }
+      .workspace {
+        order: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-rows: auto 31px 105px;
+      }
+      .preview-panel { min-height: 0; }
+      .panel-heading { flex-basis: 39px; padding: 0 12px; }
+      .preview {
+        width: calc(100% - 24px);
+        max-height: none;
+        min-height: 0;
+        margin: 0 auto;
+      }
+      .stream-chat-overlay {
+        width: 28%;
+        min-width: 112px;
+        height: 42%;
+        bottom: 18%;
+        border-width: 3px;
+      }
+      .preview-toolbar { flex-basis: 43px; padding: 0 12px; }
+      .right-column {
+        order: 1;
+        overflow: visible;
+        border-right: 0;
+        border-top: 1px solid #303235;
+        padding: 14px;
+        grid-template-columns: 1fr;
+      }
+      .scenes { padding-left: 11px; }
+      .scene { flex-basis: 126px; }
+      .scene-add { flex-basis: 98px; }
+      .connection { display: none; }
+      .top-actions { gap: 8px; }
+      .top-actions .button { padding: 9px 10px; font-size: 10px; }
+    }
+    @media (max-width: 390px) {
+      .brand-tag { display: none; }
+      .button.twitch span { display: inline; }
+      .button.twitch { width: auto; height: auto; }
+      .top-actions .button { font-size: 9px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M7 5.5h12v10l-3.5 3.5H12l-2.5 2v-2H7V5.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M11 9v4M15 9v4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </div>
+        <span class="brand-name">luma</span><span class="brand-tag">creator studio</span>
+      </div>
+      <div class="top-actions">
+        <div class="connection"><span class="dot"></span><span id="twitch-connection-status">Twitch nicht verbunden</span></div>
+        <button class="button twitch connect-button" type="button">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 3h18v13l-5 5h-4l-3 3v-3H5V5l-1 0V3Zm3 2v14h4v2l2-2h4l3-3V5H7Zm4 3h2v6h-2V8Zm5 0h2v6h-2V8Z"/></svg>
+          <span>Mit Twitch verbinden</span>
+        </button>
+        <button class="icon-button" type="button" aria-label="Einstellungen" id="settings-button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.7-1.4-2.4L7.3 15a8 8 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a8 8 0 0 1-.1 2Z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <div class="welcome">
+        <div>
+          <div class="eyebrow">Dein Creator Studio</div>
+          <h1>Alles bereit für deinen Stream?</h1>
+          <p class="subtitle">Deine Bühne. Deine Regeln. Ein Klick bis live.</p>
+        </div>
+        <div class="session-pill"><span class="dot"></span> Entwurf · wird lokal gespeichert</div>
+      </div>
+
+      <div class="layout">
+        <section class="workspace" aria-label="Stream-Steuerung">
+          <div class="panel preview-panel">
+            <div class="panel-heading">
+              <div class="panel-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3V9Z" fill="currentColor" stroke="none"/></svg>
+                Stream-Vorschau
+              </div>
+              <span class="tiny-label"><span class="dot"></span><span id="preview-state">Vorschau aktiv</span></span>
+            </div>
+            <div class="preview" id="preview">
+              <div class="preview-grid"></div>
+              <iframe class="twitch-player" id="twitch-player" title="Aktiver Twitch-Stream" allow="autoplay; picture-in-picture" allowfullscreen></iframe>
+              <div class="preview-offline" id="preview-offline">
+                <div>
+                  <strong id="stream-preview-title">Dein Twitch-Stream erscheint hier</strong>
+                  <p id="stream-preview-description">Verbinde dein Twitch-Konto. Wenn dein Kanal live ist, wird der echte Stream hier angezeigt.</p>
+                </div>
+              </div>
+              <section class="stream-chat-overlay" aria-label="Chat-Overlay im Stream">
+                <div class="stream-chat-header">
+                  <span>CHAT IM STREAM</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v11h-5l-3 3-3-3H4V5Z"/><path d="M8 10h.01M12 10h.01M16 10h.01" stroke-linecap="round"/></svg>
+                </div>
+                <div class="stream-chat-messages" id="stream-chat-messages" aria-live="polite"></div>
+              </section>
+              <div class="stream-alert hidden" id="stream-alert" role="status"><span>★</span><strong id="stream-alert-text">Neuer Follow!</strong></div>
+              <div class="preview-controls">
+                <div class="preview-badge">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3h18v13l-5 5h-4l-3 3v-3H5V5l-1 0V3Z"/></svg>
+                  TWITCH · NICHT VERBUNDEN
+                </div>
+                <span class="aspect-badge">16:9</span>
+              </div>
+              <div class="preview-content">
+                <div class="preview-kicker" id="preview-kicker">gleich geht's los</div>
+                <h2 id="preview-title">Willkommen im Stream</h2>
+                <div class="preview-description" id="preview-description">Mach es dir gemütlich — wir sind gleich zurück.</div>
+                <div class="preview-status"><span class="dot"></span><span id="preview-status-text">Szene: Gleich geht's los</span></div>
+              </div>
+            </div>
+            <div class="preview-toolbar">
+              <button class="icon-button" type="button" aria-label="Szene duplizieren" id="duplicate-button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>
+              </button>
+              <span class="source-info" id="source-info">Szene „Gleich geht's los“ ist ausgewählt</span>
+              <span class="spacer"></span>
+              <button class="button" type="button" id="audio-button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+                Audio testen
+              </button>
+            </div>
+          </div>
+
+          <div class="section-heading">
+            <h3>Deine Szenen</h3>
+            <span><span id="scene-count">6</span> Szenen · direkt umschalten</span>
+          </div>
+          <div class="scenes" id="scenes">
+            <button class="scene-add" type="button" id="add-scene">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+              Szene hinzufügen
+            </button>
+            <button class="scene active" type="button" data-scene="live">
+              <div class="scene-thumb"></div>
+              <div class="scene-name"><strong>Gameplay</strong><small>01</small></div>
+            </button>
+            <button class="scene" type="button" data-scene="starting">
+              <div class="scene-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2"/></svg></div>
+              <div class="scene-name"><strong>Stream starten</strong><small>02</small></div>
+            </button>
+            <button class="scene" type="button" data-scene="brb">
+              <div class="scene-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 4h8M8 20h8M10 4v4l2 4-2 4v4m4-16v4l-2 4 2 4v4"/></svg></div>
+              <div class="scene-name"><strong>Intermission</strong><small>03</small></div>
+            </button>
+            <button class="scene" type="button" data-scene="ending">
+              <div class="scene-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v18M5 8l7 4 7-4M5 16l7-4 7 4"/></svg></div>
+              <div class="scene-name"><strong>Stream Ende</strong><small>04</small></div>
+            </button>
+            <button class="scene" type="button" data-scene="brb">
+              <div class="scene-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 4h8M8 20h8M10 4v4l2 4-2 4v4m4-16v4l-2 4 2 4v4"/></svg></div>
+              <div class="scene-name"><strong>Intermission</strong><small>05</small></div>
+            </button>
+            <button class="scene" type="button" data-scene="brb">
+              <div class="scene-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 4h8M8 20h8M10 4v4l2 4-2 4v4m4-16v4l-2 4 2 4v4"/></svg></div>
+              <div class="scene-name"><strong>Intermission</strong><small>06</small></div>
+            </button>
+            <button class="scene-add" type="button" id="add-scene-bottom">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M9 12h6M12 9v6"/></svg>
+              Neue Szene
+            </button>
+          </div>
+          <div class="footer-note">Dein Studio, ganz ohne kompliziertes Setup. ✦</div>
+        </section>
+
+        <aside class="right-column">
+          <div class="sidebar-profile">
+            <div class="profile-avatar" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.5-4 3-6 7-6s6.5 2 7 6"/></svg>
+            </div>
+            <div class="profile-copy"><strong id="twitch-profile-name">dein_channel</strong><small id="twitch-profile-state">Creator · Demo-Modus</small></div>
+          </div>
+          <div class="sidebar-label">Studio</div>
+          <section class="panel go-live-panel">
+            <div class="go-live-head"><strong>Stream starten</strong><span class="ready"><span class="dot"></span>Alles bereit</span></div>
+            <label class="stream-title-label" for="stream-title">Stream-Titel</label>
+            <input class="stream-title" id="stream-title" maxlength="140" value="Chilliger Abend – kommt rein ✨">
+            <div class="category-row"><span class="category-label">Kategorie</span><span class="category">Just Chatting</span></div>
+            <label class="custom-control countdown-setting" for="countdown-duration">
+              <span>Countdown-Dauer <output id="countdown-duration-value">60 Sekunden</output></span>
+              <input type="number" id="countdown-duration" min="0" max="3600" step="1" value="60" inputmode="numeric">
+            </label>
+            <button class="button primary big full-width" id="start-button" type="button">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="m8 5 12 7-12 7V5Z"/></svg>
+              Countdown starten
+            </button>
+            <p class="go-live-note">Countdown frei einstellbar (0–3600 Sekunden).<br>Du kannst jederzeit abbrechen.</p>
+          </section>
+
+          <section class="panel chat-panel">
+            <div class="chat-heading">
+              <strong><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8 8 0 0 1-3.5-.8L4 20l1.5-3.5A7.2 7.2 0 0 1 4 12c0-4.1 3.6-7.5 8-7.5s8 3.1 8 7Z"/><path d="M8 12h.01M12 12h.01M16 12h.01" stroke-linecap="round"/></svg>Twitch-Chat</strong>
+              <span class="chat-state">Demo-Vorschau</span>
+            </div>
+            <div class="chat-messages" id="chat-messages" aria-live="polite">
+              <div class="message"><span class="mod">◆</span><span class="username">streambot</span>Willkommen im Chat! 👋</div>
+              <div class="message"><span class="username">pixelpanda</span>Hey zusammen, wird ein guter Abend ✨</div>
+              <div class="message"><span class="username">luna_live</span>Freu mich schon auf den Stream!</div>
+              <div class="message"><span class="username">cozycat</span>Hab Snacks bereit 🍿</div>
+              <div class="message"><span class="mod">◆</span><span class="username">streambot</span>Schön, dass ihr da seid 💜</div>
+            </div>
+            <form class="chat-input-wrap" id="chat-form">
+              <div class="chat-input-row">
+                <input class="chat-input" id="chat-input" maxlength="250" placeholder="Schreib eine Nachricht…" aria-label="Chat-Nachricht">
+                <button class="send-chat" aria-label="Nachricht senden" type="submit">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4 20-7ZM22 2 11 13"/></svg>
+                </button>
+              </div>
+              <div class="chat-foot"><span>Enter zum Senden</span><a class="chat-connect connect-button">Chat verbinden</a></div>
+            </form>
+          </section>
+
+          <section class="panel widgets">
+            <div class="widget-head"><strong>Stream-Widgets</strong><button class="icon-button" aria-label="Widget hinzufügen" type="button" id="widget-add" style="width:28px;height:28px">+</button></div>
+            <div class="widget-row">
+              <div class="widget-info"><span class="widget-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M5 8l7 4 7-4M5 16l7-4 7 4"/></svg></span><span class="widget-label"><strong>Letzter Follow</strong><small>Danke fürs Folgen!</small></span></div>
+              <input class="switch" type="checkbox" checked aria-label="Letzter Follow aktivieren">
+            </div>
+            <div class="widget-row">
+              <div class="widget-info"><span class="widget-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M5 8l7 4 7-4M5 16l7-4 7 4"/></svg></span><span class="widget-label"><strong>Letzter Sub</strong><small>Shout-out zeigen</small></span></div>
+              <input class="switch" type="checkbox" checked aria-label="Letzter Sub aktivieren">
+            </div>
+            <div class="widget-row">
+              <div class="widget-info"><span class="widget-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><span class="widget-label"><strong>Stream-Ziel</strong><small>Community-Ziel</small></span></div>
+              <input class="switch" type="checkbox" checked aria-label="Stream-Ziel aktivieren">
+            </div>
+            <button class="widget-config" type="button" id="widget-config">Widgets verwalten →</button>
+          </section>
+          <section class="panel customization-panel">
+            <div class="customization-title">Chat-Overlay <span>Vorschau anpassen</span></div>
+            <label class="custom-control">
+              <span>Rahmenfarbe <input type="color" id="chat-color" value="#22bd8c" aria-label="Chat-Rahmenfarbe"></span>
+            </label>
+            <label class="custom-control">
+              <span>Breite <output id="chat-width-value">20%</output></span>
+              <input type="range" id="chat-width" min="15" max="38" value="20">
+            </label>
+            <label class="custom-control">
+              <span>Textgröße <output id="chat-font-value">10px</output></span>
+              <input type="range" id="chat-font-size" min="8" max="16" value="10">
+            </label>
+            <label class="custom-control">
+              <span>Hintergrund <output id="chat-opacity-value">92%</output></span>
+              <input type="range" id="chat-opacity" min="20" max="100" value="92">
+            </label>
+            <label class="custom-control inline-control">
+              <span>Chat im Stream anzeigen</span><input type="checkbox" id="chat-overlay-toggle" checked>
+            </label>
+            <p class="custom-hint">Das Chat-Fenster kannst du direkt in der Vorschau mit der Maus verschieben.</p>
+          </section>
+          <section class="panel customization-panel">
+            <div class="customization-title">Alerts &amp; Sound <span>lokale Vorschau</span></div>
+            <label class="custom-control">
+              <span>Alert-Text</span>
+              <input type="text" id="alert-text-input" maxlength="50" value="Neuer Follow!">
+            </label>
+            <label class="custom-control">
+              <span>Alert-Farbe <input type="color" id="alert-color" value="#22bd8c" aria-label="Alert-Farbe"></span>
+            </label>
+            <label class="custom-control">
+              <span>Eigener Alarmton</span>
+              <input type="file" id="alert-sound-file" accept="audio/*">
+            </label>
+            <label class="custom-control">
+              <span>Lautstärke <output id="alert-volume-value">60%</output></span>
+              <input type="range" id="alert-volume" min="0" max="100" value="60">
+            </label>
+            <label class="custom-control inline-control">
+              <span>Alarmton aktiv</span><input type="checkbox" id="alert-sound-toggle" checked>
+            </label>
+            <button class="button full-width" type="button" id="alert-test">Alert &amp; Sound testen</button>
+            <p class="custom-hint" id="alert-sound-name">Standard-Testton wird verwendet.</p>
+          </section>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <div class="modal-backdrop" id="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3h18v13l-5 5h-4l-3 3v-3H5V5l-1 0V3Zm3 2v14h4v2l2-2h4l3-3V5H7Zm4 3h2v6h-2V8Zm5 0h2v6h-2V8Z"/></svg>
+      </div>
+      <h2 id="modal-title">Twitch verbinden</h2>
+      <p id="oauth-help-text">Zum Anmelden muss der lokale luma-Server laufen. Hinterlege Twitch Client-ID und Client-Secret in der lokalen .env-Datei. Das Secret niemals in diese Webseite eintragen.</p>
+      <div class="modal-actions">
+        <button class="button" type="button" id="modal-close">Später</button>
+        <button class="button twitch" type="button" id="modal-ok">Alles klar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const scenes = {
+      starting: { name: "Stream starten", kicker: "gleich geht's los", title: "Willkommen im Stream", description: "Mach es dir gemütlich — wir sind gleich zurück." },
+      live: { name: "Gameplay", kicker: "wir sind live", title: "Schön, dass du da bist", description: "Der Stream läuft — viel Spaß zusammen! ✨" },
+      brb: { name: "Intermission", kicker: "kurze pause", title: "Bin gleich zurück", description: "Hol dir was zu trinken. Wir sind gleich wieder da." },
+      ending: { name: "Stream Ende", kicker: "danke fürs dabeisein", title: "Bis zum nächsten Mal", description: "Danke für einen wunderschönen Stream. 💜" }
+    };
+    let currentScene = "live";
+    let countdownTimer = null;
+    let toastTimer = null;
+    let alertTimer = null;
+    let currentChatFontSize = 10;
+
+    const chatMessages = document.getElementById("chat-messages");
+    const streamChatMessages = document.getElementById("stream-chat-messages");
+    function addStreamChatMessage(message) {
+      const overlayMessage = message.cloneNode(true);
+      overlayMessage.className = "stream-chat-message";
+      overlayMessage.style.fontSize = `${currentChatFontSize}px`;
+      streamChatMessages.append(overlayMessage);
+      while (streamChatMessages.children.length > 5) {
+        streamChatMessages.firstElementChild.remove();
+      }
+    }
+    Array.from(chatMessages.children).forEach(addStreamChatMessage);
+
+    const toast = (message) => {
+      const element = document.getElementById("toast");
+      element.textContent = message;
+      element.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => element.classList.remove("show"), 2800);
+    };
+
+    function selectScene(key) {
+      const scene = scenes[key];
+      if (!scene) return;
+      currentScene = key;
+      document.getElementById("preview").dataset.scene = key;
+      let activeSceneSelected = false;
+      document.querySelectorAll(".scene").forEach((button) => {
+        const active = button.dataset.scene === key && !activeSceneSelected;
+        button.classList.toggle("active", active);
+        if (active) activeSceneSelected = true;
+      });
+      document.getElementById("preview-kicker").textContent = scene.kicker;
+      document.getElementById("preview-title").textContent = scene.title;
+      document.getElementById("preview-description").textContent = scene.description;
+      document.getElementById("preview-status-text").textContent = `Szene: ${scene.name}`;
+      document.getElementById("source-info").textContent = `Szene „${scene.name}“ ist ausgewählt`;
+      document.getElementById("preview-state").textContent = key === "live" ? "Live-Vorschau" : "Vorschau aktiv";
+    }
+
+    const scenesContainer = document.getElementById("scenes");
+    scenesContainer.addEventListener("click", (event) => {
+      const button = event.target.closest(".scene");
+      if (button) selectScene(button.dataset.scene);
+    });
+    selectScene("live");
+
+    async function beginTwitchLogin() {
+      try {
+        const response = await fetch("/api/auth/config", { cache: "no-store" });
+        if (!response.ok) throw new Error(`Server-Antwort ${response.status}`);
+        const config = await response.json();
+        if (!config.configured) {
+          document.getElementById("oauth-help-text").textContent =
+            "Lege im Projektordner eine .env-Datei mit deiner Twitch Client-ID und deinem Client-Secret an. Kopiere dafür .env.example und starte danach node server.mjs neu.";
+          document.getElementById("modal-backdrop").classList.add("open");
+          return;
+        }
+        window.location.assign("/api/auth/login");
+      } catch (error) {
+        document.getElementById("oauth-help-text").textContent =
+          "Der lokale Server läuft nicht. Starte im Projektordner node server.mjs und öffne anschließend http://localhost:3000.";
+        document.getElementById("modal-backdrop").classList.add("open");
+        console.error("Twitch sign-in could not start:", error);
+      }
+    }
+    document.querySelectorAll(".connect-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.classList.contains("logout-button")) {
+          logoutFromTwitch();
+          return;
+        }
+        beginTwitchLogin();
+      });
+    });
+    const closeModal = () => document.getElementById("modal-backdrop").classList.remove("open");
+    document.getElementById("modal-close").addEventListener("click", closeModal);
+    document.getElementById("modal-ok").addEventListener("click", closeModal);
+    document.getElementById("modal-backdrop").addEventListener("click", (event) => {
+      if (event.target.id === "modal-backdrop") closeModal();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeModal();
+    });
+
+    const startButton = document.getElementById("start-button");
+    const countdownDuration = document.getElementById("countdown-duration");
+    const countdownDurationValue = document.getElementById("countdown-duration-value");
+    const countdownNote = document.querySelector(".go-live-note");
+    function formatCountdown(seconds) {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
+    }
+    function updateCountdownDuration() {
+      const duration = Math.max(0, Math.min(3600, Math.floor(Number(countdownDuration.value) || 0)));
+      countdownDuration.value = String(duration);
+      countdownDurationValue.textContent = `${duration} ${duration === 1 ? "Sekunde" : "Sekunden"}`;
+      localStorage.setItem("luma-countdown-duration", String(duration));
+    }
+    const savedCountdownDuration = localStorage.getItem("luma-countdown-duration");
+    if (savedCountdownDuration !== null) countdownDuration.value = savedCountdownDuration;
+    updateCountdownDuration();
+    countdownDuration.addEventListener("change", updateCountdownDuration);
+    countdownDuration.addEventListener("input", () => {
+      const duration = Math.max(0, Math.min(3600, Math.floor(Number(countdownDuration.value) || 0)));
+      countdownDurationValue.textContent = `${duration} ${duration === 1 ? "Sekunde" : "Sekunden"}`;
+    });
+    startButton.addEventListener("click", () => {
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+        startButton.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="m8 5 12 7-12 7V5Z"/></svg> Countdown starten';
+        startButton.classList.add("primary");
+        countdownDuration.disabled = false;
+        countdownNote.innerHTML = "Countdown frei einstellbar (0–3600 Sekunden).<br>Du kannst jederzeit abbrechen.";
+        selectScene("starting");
+        toast("Countdown abgebrochen.");
+        return;
+      }
+      let seconds = Math.max(0, Math.min(3600, Math.floor(Number(countdownDuration.value) || 0)));
+      selectScene("starting");
+      if (seconds === 0) {
+        selectScene("live");
+        toast("Countdown übersprungen — Demo-Vorschau ist live.");
+        return;
+      }
+      countdownDuration.disabled = true;
+      startButton.classList.remove("primary");
+      startButton.textContent = `Countdown abbrechen · ${formatCountdown(seconds)}`;
+      countdownNote.textContent = "Dein Countdown läuft. Abbrechen kannst du jederzeit.";
+      countdownTimer = setInterval(() => {
+        seconds -= 1;
+        const time = formatCountdown(seconds);
+        startButton.textContent = `Countdown abbrechen · ${time}`;
+        document.getElementById("preview-title").textContent = seconds > 0 ? `Start in ${time}` : "Wir sind live!";
+        document.getElementById("preview-kicker").textContent = seconds > 0 ? "gleich geht's los" : "wir sind live";
+        if (seconds <= 0) {
+          clearInterval(countdownTimer);
+          countdownTimer = null;
+          startButton.classList.add("primary");
+          countdownDuration.disabled = false;
+          startButton.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="m8 5 12 7-12 7V5Z"/></svg> Countdown starten';
+          countdownNote.innerHTML = "Countdown frei einstellbar (0–3600 Sekunden).<br>Du kannst jederzeit abbrechen.";
+          selectScene("live");
+          toast("Countdown beendet — Demo-Vorschau ist live.");
+        }
+      }, 1000);
+      toast(`Countdown gestartet — noch ${formatCountdown(seconds)}.`);
+    });
+
+    document.getElementById("chat-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const input = document.getElementById("chat-input");
+      const text = input.value.trim();
+      if (!text) return;
+      const message = document.createElement("div");
+      message.className = "message";
+      const username = document.createElement("span");
+      username.className = "username";
+      username.textContent = "du";
+      message.append(username, document.createTextNode(text));
+      chatMessages.append(message);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      addStreamChatMessage(message);
+      input.value = "";
+      toast("Nachricht in der lokalen Demo angezeigt.");
+    });
+
+    document.getElementById("add-scene").addEventListener("click", () => {
+      const name = window.prompt("Wie soll deine neue Szene heißen?");
+      if (name === null || !name.trim()) return;
+      const key = `custom-${Date.now()}`;
+      const scene = { name: name.trim(), kicker: "eigene szene", title: name.trim(), description: "Deine eigene Szene — passe sie nach deinen Wünschen an." };
+      scenes[key] = scene;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "scene";
+      button.dataset.scene = key;
+      const thumbnail = document.createElement("div");
+      thumbnail.className = "scene-thumb";
+      thumbnail.style.background = "linear-gradient(140deg, #33594e, #2c3740 52%, #19211e)";
+      const label = document.createElement("div");
+      label.className = "scene-name";
+      const title = document.createElement("strong");
+      title.textContent = scene.name;
+      const number = document.createElement("small");
+      number.textContent = String(scenesContainer.querySelectorAll(".scene").length + 1).padStart(2, "0");
+      label.append(title, number);
+      button.append(thumbnail, label);
+      scenesContainer.insertBefore(button, document.getElementById("add-scene-bottom"));
+      document.getElementById("scene-count").textContent = String(scenesContainer.querySelectorAll(".scene").length);
+      selectScene(key);
+    });
+    document.getElementById("add-scene-bottom").addEventListener("click", () => {
+      document.getElementById("add-scene").click();
+    });
+    document.getElementById("widget-add").addEventListener("click", () => toast("Widget-Bibliothek kommt in einer späteren Version."));
+    document.getElementById("widget-config").addEventListener("click", () => toast("Widget-Einstellungen kommen in einer späteren Version."));
+    document.getElementById("settings-button").addEventListener("click", () => toast("Studio-Einstellungen kommen in einer späteren Version."));
+    document.getElementById("audio-button").addEventListener("click", () => toast("Audio-Test ist im Demo-Modus nicht verfügbar."));
+    document.getElementById("duplicate-button").addEventListener("click", () => toast(`Szene „${scenes[currentScene].name}“ ausgewählt.`));
+    document.getElementById("stream-title").addEventListener("change", (event) => {
+      localStorage.setItem("luma-stream-title", event.target.value);
+      toast("Stream-Titel lokal gespeichert.");
+    });
+    const savedTitle = localStorage.getItem("luma-stream-title");
+    if (savedTitle) document.getElementById("stream-title").value = savedTitle;
+
+    const chatOverlay = document.querySelector(".stream-chat-overlay");
+    const chatColor = document.getElementById("chat-color");
+    const chatWidth = document.getElementById("chat-width");
+    const chatFontSize = document.getElementById("chat-font-size");
+    const chatOpacity = document.getElementById("chat-opacity");
+    const chatOverlayToggle = document.getElementById("chat-overlay-toggle");
+    const alertOverlay = document.getElementById("stream-alert");
+
+    function applyChatColor(value) {
+      chatOverlay.style.setProperty("--overlay-accent", value);
+      localStorage.setItem("luma-chat-color", value);
+    }
+    function applyChatWidth(value) {
+      chatOverlay.style.width = `${value}%`;
+      document.getElementById("chat-width-value").textContent = `${value}%`;
+      localStorage.setItem("luma-chat-width", value);
+    }
+    function applyChatFontSize(value) {
+      currentChatFontSize = Number(value);
+      streamChatMessages.querySelectorAll(".stream-chat-message").forEach((message) => {
+        message.style.fontSize = `${currentChatFontSize}px`;
+      });
+      document.getElementById("chat-font-value").textContent = `${value}px`;
+      localStorage.setItem("luma-chat-font-size", value);
+    }
+    function applyChatOpacity(value) {
+      chatOverlay.style.backgroundColor = `rgba(34, 36, 38, ${value / 100})`;
+      document.getElementById("chat-opacity-value").textContent = `${value}%`;
+      localStorage.setItem("luma-chat-opacity", value);
+    }
+    function restoreSlider(key, input, minimum, maximum) {
+      const saved = Number(localStorage.getItem(key));
+      if (localStorage.getItem(key) !== null && Number.isFinite(saved)) {
+        input.value = String(Math.max(minimum, Math.min(maximum, saved)));
+      }
+    }
+
+    const savedChatColor = localStorage.getItem("luma-chat-color");
+    if (savedChatColor && /^#[0-9a-f]{6}$/i.test(savedChatColor)) chatColor.value = savedChatColor;
+    restoreSlider("luma-chat-width", chatWidth, 15, 38);
+    restoreSlider("luma-chat-font-size", chatFontSize, 8, 16);
+    restoreSlider("luma-chat-opacity", chatOpacity, 20, 100);
+    applyChatColor(chatColor.value);
+    applyChatWidth(chatWidth.value);
+    applyChatFontSize(chatFontSize.value);
+    applyChatOpacity(chatOpacity.value);
+
+    chatColor.addEventListener("input", () => applyChatColor(chatColor.value));
+    chatWidth.addEventListener("input", () => applyChatWidth(chatWidth.value));
+    chatFontSize.addEventListener("input", () => applyChatFontSize(chatFontSize.value));
+    chatOpacity.addEventListener("input", () => applyChatOpacity(chatOpacity.value));
+    chatOverlayToggle.checked = localStorage.getItem("luma-chat-visible") !== "false";
+    chatOverlay.classList.toggle("hidden", !chatOverlayToggle.checked);
+    chatOverlayToggle.addEventListener("change", () => {
+      chatOverlay.classList.toggle("hidden", !chatOverlayToggle.checked);
+      localStorage.setItem("luma-chat-visible", String(chatOverlayToggle.checked));
+    });
+
+    function enableDragging(element, storageKey) {
+      let dragOffset = null;
+      element.addEventListener("pointerdown", (event) => {
+        if (event.button !== 0 || event.target.closest("button, input")) return;
+        const previewBounds = document.getElementById("preview").getBoundingClientRect();
+        const elementBounds = element.getBoundingClientRect();
+        element.style.left = `${elementBounds.left - previewBounds.left}px`;
+        element.style.top = `${elementBounds.top - previewBounds.top}px`;
+        element.style.bottom = "auto";
+        element.style.right = "auto";
+        dragOffset = {
+          x: event.clientX - elementBounds.left,
+          y: event.clientY - elementBounds.top,
+          previewBounds
+        };
+        element.setPointerCapture(event.pointerId);
+        event.preventDefault();
+      });
+      element.addEventListener("pointermove", (event) => {
+        if (!dragOffset) return;
+        const maxX = dragOffset.previewBounds.width - element.offsetWidth;
+        const maxY = dragOffset.previewBounds.height - element.offsetHeight;
+        const left = Math.max(0, Math.min(maxX, event.clientX - dragOffset.previewBounds.left - dragOffset.x));
+        const top = Math.max(0, Math.min(maxY, event.clientY - dragOffset.previewBounds.top - dragOffset.y));
+        element.style.left = `${left}px`;
+        element.style.top = `${top}px`;
+      });
+      element.addEventListener("pointerup", () => {
+        if (!dragOffset) return;
+        const previewBounds = document.getElementById("preview").getBoundingClientRect();
+        localStorage.setItem(storageKey, JSON.stringify({
+          x: element.offsetLeft / previewBounds.width,
+          y: element.offsetTop / previewBounds.height
+        }));
+        dragOffset = null;
+      });
+      element.addEventListener("pointercancel", () => { dragOffset = null; });
+      const savedPosition = localStorage.getItem(storageKey);
+      if (savedPosition) {
+        const position = JSON.parse(savedPosition);
+        if (Number.isFinite(position.x) && Number.isFinite(position.y)) {
+          element.style.left = `${Math.max(0, Math.min(1, position.x)) * 100}%`;
+          element.style.top = `${Math.max(0, Math.min(1, position.y)) * 100}%`;
+          element.style.bottom = "auto";
+          element.style.right = "auto";
+        }
+      }
+    }
+    enableDragging(chatOverlay, "luma-chat-position");
+    enableDragging(alertOverlay, "luma-alert-position");
+
+    const alertTextInput = document.getElementById("alert-text-input");
+    const alertText = document.getElementById("stream-alert-text");
+    const alertColor = document.getElementById("alert-color");
+    const alertSoundToggle = document.getElementById("alert-sound-toggle");
+    const alertVolume = document.getElementById("alert-volume");
+    const alertAudioName = document.getElementById("alert-sound-name");
+    let customAlertAudio = null;
+    const savedAlertText = localStorage.getItem("luma-alert-text");
+    if (savedAlertText) alertTextInput.value = savedAlertText;
+    const savedAlertColor = localStorage.getItem("luma-alert-color");
+    if (savedAlertColor && /^#[0-9a-f]{6}$/i.test(savedAlertColor)) alertColor.value = savedAlertColor;
+    restoreSlider("luma-alert-volume", alertVolume, 0, 100);
+    alertSoundToggle.checked = localStorage.getItem("luma-alert-sound-enabled") !== "false";
+    alertText.textContent = alertTextInput.value;
+    alertOverlay.style.borderColor = alertColor.value;
+    alertOverlay.querySelector("span").style.color = alertColor.value;
+    document.getElementById("alert-volume-value").textContent = `${alertVolume.value}%`;
+
+    alertTextInput.addEventListener("input", () => {
+      alertText.textContent = alertTextInput.value || "Alert!";
+      localStorage.setItem("luma-alert-text", alertTextInput.value);
+    });
+    alertColor.addEventListener("input", () => {
+      alertOverlay.style.borderColor = alertColor.value;
+      alertOverlay.querySelector("span").style.color = alertColor.value;
+      localStorage.setItem("luma-alert-color", alertColor.value);
+    });
+    alertVolume.addEventListener("input", () => {
+      document.getElementById("alert-volume-value").textContent = `${alertVolume.value}%`;
+      localStorage.setItem("luma-alert-volume", alertVolume.value);
+      if (customAlertAudio) customAlertAudio.volume = Number(alertVolume.value) / 100;
+    });
+    alertSoundToggle.addEventListener("change", () => {
+      localStorage.setItem("luma-alert-sound-enabled", String(alertSoundToggle.checked));
+    });
+    document.getElementById("alert-sound-file").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (customAlertAudio) URL.revokeObjectURL(customAlertAudio.src);
+      customAlertAudio = new Audio(URL.createObjectURL(file));
+      customAlertAudio.volume = Number(alertVolume.value) / 100;
+      alertAudioName.textContent = `Eigener Sound: ${file.name}`;
+      toast("Eigener Alarmton geladen.");
+    });
+    document.getElementById("alert-test").addEventListener("click", () => {
+      alertText.textContent = alertTextInput.value.trim() || "Alert!";
+      alertOverlay.classList.remove("hidden");
+      clearTimeout(alertTimer);
+      alertTimer = setTimeout(() => alertOverlay.classList.add("hidden"), 4000);
+      if (!alertSoundToggle.checked) {
+        toast("Alert angezeigt. Der Alarmton ist ausgeschaltet.");
+        return;
+      }
+      if (customAlertAudio) {
+        customAlertAudio.currentTime = 0;
+        customAlertAudio.volume = Number(alertVolume.value) / 100;
+        customAlertAudio.play().catch(() => toast("Der gewählte Sound konnte nicht abgespielt werden."));
+        return;
+      }
+      try {
+        const audioContext = new AudioContext();
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        oscillator.type = "sine";
+        oscillator.frequency.value = 880;
+        gain.gain.value = Number(alertVolume.value) / 100 * 0.12;
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.22);
+        oscillator.addEventListener("ended", () => audioContext.close());
+      } catch (error) {
+        toast("Der Testton konnte in diesem Browser nicht gestartet werden.");
+      }
+    });
+
+    const savedChatPosition = localStorage.getItem("luma-chat-position");
+    const savedAlertPosition = localStorage.getItem("luma-alert-position");
+    if (savedChatPosition || savedAlertPosition) {
+      toast("Deine Overlay-Einstellungen wurden wiederhergestellt.");
+    }
+    document.querySelectorAll(".switch").forEach((toggle) => {
+      toggle.addEventListener("change", () => toast(`${toggle.getAttribute("aria-label").replace(" aktivieren", "")} ${toggle.checked ? "aktiviert" : "deaktiviert"}.`));
+    });
+
+    async function refreshTwitchSession() {
+      const status = document.getElementById("twitch-connection-status");
+      const profileName = document.getElementById("twitch-profile-name");
+      const profileState = document.getElementById("twitch-profile-state");
+      const connectButton = document.querySelector(".top-actions .connect-button");
+      const previewBadge = document.querySelector(".preview-badge");
+      const chatState = document.querySelector(".chat-heading .chat-state");
+      try {
+        const response = await fetch("/api/auth/me", { cache: "no-store" });
+        if (!response.ok) throw new Error(`Server-Antwort ${response.status}`);
+        const session = await response.json();
+        if (session.authenticated && session.user) {
+          window.lumaTwitchAuthenticated = true;
+          status.textContent = `Verbunden als ${session.user.displayName}`;
+          profileName.textContent = session.user.displayName;
+          profileState.textContent = "Twitch verbunden";
+          chatState.textContent = "Twitch-Livevorschau";
+          previewBadge.lastChild.textContent = "TWITCH · VERBUNDEN";
+          connectButton.querySelector("span").textContent = "Abmelden";
+          connectButton.classList.add("connect-button");
+          connectButton.classList.add("logout-button");
+          await refreshStreamPreview();
+          window.lumaStreamRefreshTimer = setInterval(() => {
+            refreshStreamPreview().catch((error) => {
+              console.error("Could not refresh the Twitch stream preview:", error);
+              document.getElementById("preview-state").textContent = "Streamstatus nicht verfügbar";
+            });
+          }, 30000);
+        } else {
+          showStreamOffline("Dein Twitch-Konto ist noch nicht verbunden.", "Klicke oben auf „Mit Twitch verbinden“, um deinen Kanal zu laden.");
+        }
+      } catch (error) {
+        console.error("Could not check Twitch sign-in:", error);
+        showStreamOffline("Twitch-Vorschau nicht erreichbar.", "Starte den lokalen Server unter http://localhost:3000 und lade die Seite neu.");
+      }
+    }
+
+    function showStreamOffline(title, description) {
+      const preview = document.getElementById("preview");
+      const player = document.getElementById("twitch-player");
+      preview.dataset.streamLive = "false";
+      player.removeAttribute("src");
+      document.getElementById("stream-preview-title").textContent = title;
+      document.getElementById("stream-preview-description").textContent = description;
+      document.getElementById("preview-state").textContent = "Kein aktiver Twitch-Stream";
+      document.querySelector(".preview-badge").lastChild.textContent = window.lumaTwitchAuthenticated
+        ? "TWITCH · VERBUNDEN"
+        : "TWITCH · NICHT VERBUNDEN";
+      document.querySelector(".stream-chat-overlay").classList.add("hidden");
+    }
+
+    async function refreshStreamPreview() {
+      const response = await fetch("/api/stream", { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`Twitch-Streamstatus konnte nicht geladen werden (${response.status}).`);
+      }
+      const result = await response.json();
+      if (!result.authenticated || !result.user) {
+        window.lumaTwitchAuthenticated = false;
+        showStreamOffline("Dein Twitch-Konto ist nicht verbunden.", "Verbinde Twitch erneut, damit dein aktiver Stream in der Vorschau erscheint.");
+        return;
+      }
+      if (!result.live || !result.stream) {
+        showStreamOffline("Du bist gerade nicht live.", `Sobald ${result.user.displayName} live geht, erscheint der Twitch-Stream hier automatisch.`);
+        return;
+      }
+
+      const preview = document.getElementById("preview");
+      const player = document.getElementById("twitch-player");
+      const parent = window.location.hostname;
+      const playerUrl = new URL("https://player.twitch.tv/");
+      playerUrl.search = new URLSearchParams({
+        channel: result.user.login,
+        parent,
+        autoplay: "true",
+        muted: "true"
+      }).toString();
+      if (player.src !== playerUrl.href) player.src = playerUrl.href;
+      preview.dataset.streamLive = "true";
+      document.querySelector(".stream-chat-overlay").classList.remove("hidden");
+      document.getElementById("preview-state").textContent = "Dein Kanal ist live";
+      document.getElementById("preview-state").title = `${result.stream.title}${result.stream.gameName ? ` · ${result.stream.gameName}` : ""}`;
+      document.querySelector(".preview-badge").lastChild.textContent = `TWITCH · LIVE · ${result.user.displayName}`;
+      document.getElementById("stream-preview-title").textContent = result.stream.title;
+      const streamDetails = [
+        result.stream.gameName,
+        `${result.stream.viewerCount.toLocaleString("de-DE")} Zuschauer`
+      ].filter(Boolean);
+      document.getElementById("stream-preview-description").textContent = streamDetails.join(" · ");
+    }
+
+    async function logoutFromTwitch() {
+      try {
+        const response = await fetch("/api/auth/logout", { method: "POST" });
+        if (!response.ok) throw new Error(`Server-Antwort ${response.status}`);
+        window.location.assign("/");
+      } catch (error) {
+        console.error("Twitch sign-out failed:", error);
+        toast("Abmelden fehlgeschlagen. Bitte prüfe, ob der lokale Server läuft.");
+      }
+    }
+
+    refreshTwitchSession();
+    const pageUrl = new URL(window.location.href);
+    const authResult = pageUrl.searchParams.get("auth");
+    const authError = pageUrl.searchParams.get("auth_error");
+    if (authResult === "connected") toast("Twitch-Konto erfolgreich verbunden.");
+    if (authError === "cancelled") toast("Die Twitch-Anmeldung wurde abgebrochen.");
+    if (authError === "invalid_state") toast("Twitch-Anmeldung abgelehnt: Sicherheitsprüfung fehlgeschlagen.");
+    if (authError === "oauth_failed") toast("Twitch-Anmeldung fehlgeschlagen. Prüfe Client-Daten und Redirect-URL.");
+    if (authResult || authError) {
+      pageUrl.searchParams.delete("auth");
+      pageUrl.searchParams.delete("auth_error");
+      window.history.replaceState({}, "", pageUrl);
+    }
+  </script>
+</body>
+</html>
