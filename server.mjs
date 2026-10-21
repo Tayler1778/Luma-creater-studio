@@ -284,6 +284,11 @@ const server = createServer(async (request, response) => {
     response.end("Bad request");
     return;
   }
+  if (pathname.split(/[\\/]+/).some((segment) => segment.startsWith("."))) {
+    response.writeHead(404);
+    response.end("Not found");
+    return;
+  }
   const filePath = resolve(root, `.${pathname}`);
   if (filePath !== root && !filePath.startsWith(`${root}${sep}`)) {
     response.writeHead(403);
