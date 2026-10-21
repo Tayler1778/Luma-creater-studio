@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(fileURLToPath(new URL(".", import.meta.url)));
 const port = Number(process.env.PORT || 3000);
+const host = process.env.HOST || "0.0.0.0";
 const defaultRedirectUri = `http://localhost:${port}/auth/twitch/callback`;
 
 async function loadLocalEnvironment() {
@@ -319,7 +320,7 @@ const server = createServer(async (request, response) => {
   }
 });
 
-server.listen(port, "localhost", () => {
-  console.log(`luma is ready at http://localhost:${port}`);
+server.listen(port, host, () => {
+  console.log(`luma is listening on ${host}:${port}`);
   console.log(configured ? "Twitch OAuth is configured." : "Twitch OAuth needs TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET in .env.");
 });

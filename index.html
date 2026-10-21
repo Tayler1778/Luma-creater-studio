@@ -702,6 +702,107 @@
     .custom-control input[type="checkbox"] { accent-color: #24bd8e; }
     .inline-control { display: flex; justify-content: space-between; align-items: center; }
     .custom-hint { color: #8f9394; font-size: 9px; line-height: 1.5; margin: 8px 0 0; }
+    .ad-panel { padding: 12px; }
+    .ad-title {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 11px; font-weight: 700; margin-bottom: 9px;
+    }
+    .ad-title small { color: #929697; font-size: 9px; font-weight: 400; }
+    .ad-file-input { display: none; }
+    .ad-file-label {
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      width: 100%; padding: 10px; border: 1px dashed #477462;
+      border-radius: 7px; background: #1c3028; color: #9be6c5;
+      font-size: 10px; font-weight: 600; cursor: pointer;
+    }
+    .ad-file-label:hover { border-color: #36c395; background: #20382e; }
+    .ad-file-label svg { width: 15px; }
+    .ad-file-name {
+      margin-top: 8px; color: #c2c7c5; font-size: 9px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ad-controls { display: flex; gap: 7px; margin-top: 9px; }
+    .ad-controls .button { flex: 1; padding: 8px 6px; font-size: 9px; }
+    .ad-controls #ad-play-button[hidden] { display: none; }
+    .ad-remove-button { flex: 0 0 auto !important; }
+    .ad-overlay {
+      display: none;
+      position: absolute;
+      z-index: 5;
+      top: 12%;
+      right: 3%;
+      width: 45%;
+      height: 32%;
+      min-width: 150px;
+      min-height: 110px;
+      overflow: hidden;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    .ad-overlay.visible { display: flex; flex-direction: column; }
+    .ad-overlay-header {
+      position: absolute;
+      z-index: 3;
+      top: 3px;
+      left: 3px;
+      height: 22px;
+      width: 32px;
+      max-width: calc(100% - 6px);
+      opacity: 0;
+      transition: opacity .15s ease;
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 0 6px;
+      border-radius: 4px;
+      background: #222426d9;
+      color: #f0fff8;
+      font-size: 9px;
+      font-weight: 700;
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+    }
+    .ad-overlay:hover .ad-overlay-header, .ad-overlay:focus-within .ad-overlay-header { opacity: 1; }
+    .ad-overlay-header:active { cursor: grabbing; }
+    .ad-overlay-header span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .ad-overlay-header .ad-drag-grip { display: inline-flex; flex: 0 0 auto; color: #e0e2e1; letter-spacing: -2px; }
+    .ad-video { display: block; position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; background: #060707; object-fit: contain; }
+    .ad-image { display: none; position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; object-fit: contain; background: transparent; }
+    .ad-overlay.image-mode .ad-image { display: block; }
+    .ad-overlay.image-mode .ad-video { display: none; }
+    .ad-overlay.image-mode .ad-overlay-header { display: none; }
+    .ad-resize-handle {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      z-index: 2;
+      width: 22px;
+      height: 22px;
+      opacity: .2;
+      transition: opacity .15s ease;
+      display: grid;
+      place-items: center;
+      border-radius: 5px 0 0 0;
+      background: #242728d9;
+      color: #eceeed;
+      cursor: nwse-resize;
+      touch-action: none;
+    }
+    .ad-overlay:hover .ad-resize-handle, .ad-overlay:focus-within .ad-resize-handle { opacity: 1; }
+    .ad-resize-handle svg { width: 12px; }
+    .ad-size-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .ad-size-controls .custom-control { margin: 7px 0; }
+    .ad-stream-note {
+      margin: 8px 0 0;
+      color: #aaaead;
+      font-size: 9px;
+      line-height: 1.5;
+    }
     .stream-chat-overlay {
       --overlay-accent: #22bd8c;
       touch-action: none;
@@ -844,6 +945,16 @@
                   <p id="stream-preview-description">Verbinde dein Twitch-Konto. Wenn dein Kanal live ist, wird der echte Stream hier angezeigt.</p>
                 </div>
               </div>
+              <section class="ad-overlay" id="ad-overlay" aria-label="Werbeeinblendung im Stream">
+                <div class="ad-overlay-header" id="ad-overlay-drag" aria-label="Werbung verschieben">
+                  <span class="ad-drag-grip" aria-hidden="true">⠿</span>
+                </div>
+                <video class="ad-video" id="ad-video" controls playsinline preload="metadata" loop></video>
+                <img class="ad-image" id="ad-image" alt="Eigene Werbeeinblendung">
+                <div class="ad-resize-handle" id="ad-resize-handle" role="separator" aria-label="Werbung größer oder kleiner ziehen" tabindex="0">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 15 15 5M9 15l6-6M13 15l2-2"/></svg>
+                </div>
+              </section>
               <section class="stream-chat-overlay" aria-label="Chat-Overlay im Stream">
                 <div class="stream-chat-header">
                   <span>CHAT IM STREAM</span>
@@ -944,6 +1055,27 @@
             <p class="go-live-note">Countdown frei einstellbar (0–3600 Sekunden).<br>Du kannst jederzeit abbrechen.</p>
           </section>
 
+          <div class="sidebar-label">WERBUNG &amp; MEDIEN</div>
+          <section class="panel ad-panel" aria-label="Werbung einstellen">
+            <div class="ad-title">Werbeeinblendung <small id="ad-playback-state">Keine Datei</small></div>
+            <label class="ad-file-label" for="ad-file">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 16V4m0 0L7 9m5-5 5 5M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></svg>
+              Bild, GIF oder Video auswählen
+            </label>
+            <input class="ad-file-input" id="ad-file" type="file" accept="image/*,video/*">
+            <div class="ad-file-name" id="ad-file-name">Noch kein Medium ausgewählt</div>
+            <div class="ad-controls">
+              <button class="button primary" id="ad-play-button" type="button" disabled>▶ Video abspielen</button>
+              <button class="button ad-remove-button" id="ad-remove-button" type="button" disabled>Entfernen</button>
+            </div>
+            <div class="ad-size-controls">
+              <label class="custom-control"><span>Breite <output id="ad-width-value">45%</output></span><input type="range" id="ad-width" min="15" max="85" value="45"></label>
+              <label class="custom-control"><span>Höhe <output id="ad-height-value">32%</output></span><input type="range" id="ad-height" min="15" max="80" value="32"></label>
+            </div>
+            <p class="ad-stream-note">Dein Bild oder GIF wird nach dem Auswählen dauerhaft eingeblendet und nach einem Neuladen wiederhergestellt. Ziehe es direkt in der Vorschau an die richtige Stelle oder ändere die Größe an der Ecke. Für die echte Twitch-Übertragung muss das Studio das Bildsignal selbst senden.</p>
+          </section>
+
+          <div class="sidebar-label">COMMUNITY</div>
           <section class="panel chat-panel">
             <div class="chat-heading">
               <strong><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 11.5a7.5 7.5 0 0 1-8 7.5 8 8 0 0 1-3.5-.8L4 20l1.5-3.5A7.2 7.2 0 0 1 4 12c0-4.1 3.6-7.5 8-7.5s8 3.1 8 7Z"/><path d="M8 12h.01M12 12h.01M16 12h.01" stroke-linecap="round"/></svg>Twitch-Chat</strong>
@@ -1270,6 +1402,200 @@
     const savedTitle = localStorage.getItem("luma-stream-title");
     if (savedTitle) document.getElementById("stream-title").value = savedTitle;
 
+    const adFileInput = document.getElementById("ad-file");
+    const adVideo = document.getElementById("ad-video");
+    const adImage = document.getElementById("ad-image");
+    const adOverlay = document.getElementById("ad-overlay");
+    const adPlayButton = document.getElementById("ad-play-button");
+    const adRemoveButton = document.getElementById("ad-remove-button");
+    const adFileName = document.getElementById("ad-file-name");
+    const adPlaybackState = document.getElementById("ad-playback-state");
+    const adWidth = document.getElementById("ad-width");
+    const adHeight = document.getElementById("ad-height");
+    let adObjectUrl = null;
+    let adMediaDatabasePromise;
+
+    function openAdMediaDatabase() {
+      if (!window.indexedDB) return Promise.reject(new Error("Dieser Browser unterstützt keine lokale Videospeicherung."));
+      if (!adMediaDatabasePromise) {
+        adMediaDatabasePromise = new Promise((resolve, reject) => {
+          const request = indexedDB.open("luma-creator-media", 1);
+          request.onupgradeneeded = () => {
+            if (!request.result.objectStoreNames.contains("media")) {
+              request.result.createObjectStore("media", { keyPath: "key" });
+            }
+          };
+          request.onsuccess = () => resolve(request.result);
+          request.onerror = () => reject(request.error || new Error("Lokaler Videospeicher konnte nicht geöffnet werden."));
+        });
+      }
+      return adMediaDatabasePromise;
+    }
+
+    async function storeAdMedia(file, name) {
+      const database = await openAdMediaDatabase();
+      await new Promise((resolve, reject) => {
+        const transaction = database.transaction("media", "readwrite");
+        transaction.objectStore("media").put({ key: "advertisement", name, blob: file });
+        transaction.oncomplete = resolve;
+        transaction.onerror = () => reject(transaction.error || new Error("Video konnte nicht lokal gespeichert werden."));
+        transaction.onabort = () => reject(transaction.error || new Error("Lokales Speichern des Videos wurde abgebrochen."));
+      });
+    }
+
+    async function loadAdMedia() {
+      const database = await openAdMediaDatabase();
+      return new Promise((resolve, reject) => {
+        const transaction = database.transaction("media", "readonly");
+        const request = transaction.objectStore("media").get("advertisement");
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error || new Error("Gespeichertes Video konnte nicht geladen werden."));
+      });
+    }
+
+    async function deleteAdMedia() {
+      const database = await openAdMediaDatabase();
+      await new Promise((resolve, reject) => {
+        const transaction = database.transaction("media", "readwrite");
+        transaction.objectStore("media").delete("advertisement");
+        transaction.oncomplete = resolve;
+        transaction.onerror = () => reject(transaction.error || new Error("Video konnte nicht aus dem lokalen Speicher entfernt werden."));
+        transaction.onabort = () => reject(transaction.error || new Error("Löschen des Videos wurde abgebrochen."));
+      });
+    }
+
+    function applyAdMedia(file, name) {
+      if (adObjectUrl) URL.revokeObjectURL(adObjectUrl);
+      adObjectUrl = URL.createObjectURL(file);
+      adOverlay.classList.toggle("image-mode", file.type.startsWith("image/"));
+      adOverlay.classList.add("visible");
+      adFileName.textContent = name;
+      adPlayButton.disabled = false;
+      adPlayButton.hidden = file.type.startsWith("image/");
+      adRemoveButton.disabled = false;
+      if (file.type.startsWith("image/")) {
+        adVideo.pause();
+        adVideo.removeAttribute("src");
+        adVideo.load();
+        adImage.src = adObjectUrl;
+        adImage.dataset.mediaType = file.type;
+        adPlayButton.textContent = "▶ Video abspielen";
+        adPlaybackState.textContent = file.type === "image/gif" ? "GIF bereit" : "Bild bereit";
+        return;
+      }
+      adImage.removeAttribute("src");
+      delete adImage.dataset.mediaType;
+      adVideo.src = adObjectUrl;
+      adVideo.load();
+      adVideo.muted = true;
+      adPlayButton.textContent = "▶ Video abspielen";
+      adPlaybackState.textContent = "Video geladen";
+    }
+
+    adFileInput.addEventListener("change", async () => {
+      const file = adFileInput.files[0];
+      if (!file) return;
+      const acceptedMediaType = file.type.startsWith("video/") || ["image/gif", "image/png", "image/jpeg", "image/webp"].includes(file.type);
+      if (!acceptedMediaType) {
+        adFileInput.value = "";
+        toast("Bitte wähle ein Bild, GIF oder Video aus.");
+        return;
+      }
+      applyAdMedia(file, file.name);
+      if (file.type.startsWith("video/")) {
+        adVideo.play().catch((error) => {
+          console.error("Could not autoplay the local advertisement video:", error);
+          adPlaybackState.textContent = "Video bereit";
+        });
+      }
+      try {
+        await storeAdMedia(file, file.name);
+      } catch (error) {
+        console.error("Could not persist the local advertisement video:", error);
+        toast("Medium ist geladen, konnte aber nicht für den nächsten Besuch gespeichert werden.");
+      }
+      toast(file.type === "image/gif" ? "GIF ist jetzt dauerhaft in der Vorschau eingeblendet." : "Werbung ist jetzt dauerhaft in der Vorschau eingeblendet.");
+    });
+
+    adPlayButton.addEventListener("click", async () => {
+      if (adVideo.paused) {
+        try {
+          adVideo.muted = false;
+          await adVideo.play();
+        } catch (error) {
+          console.error("Could not play the selected advertisement:", error);
+          adPlaybackState.textContent = "Video bereit";
+          toast("Video konnte nicht gestartet werden. Nutze die Wiedergabetaste im Video.");
+        }
+      } else {
+        adVideo.pause();
+      }
+    });
+    adVideo.addEventListener("play", () => {
+      if (adOverlay.classList.contains("image-mode")) return;
+      adPlayButton.textContent = "⏸ Pause";
+      adPlaybackState.textContent = "Wird abgespielt";
+    });
+    adVideo.addEventListener("pause", () => {
+      if (adOverlay.classList.contains("image-mode")) return;
+      adPlayButton.textContent = "▶ Abspielen";
+      adPlaybackState.textContent = "Pausiert";
+    });
+    adVideo.addEventListener("ended", () => {
+      if (adOverlay.classList.contains("image-mode")) return;
+      adPlayButton.textContent = "▶ Erneut abspielen";
+      adPlaybackState.textContent = "Fertig";
+    });
+    adVideo.addEventListener("error", () => {
+      if (adOverlay.classList.contains("image-mode") || !adVideo.src) return;
+      adPlaybackState.textContent = "Videoformat nicht unterstützt";
+      toast("Der Browser kann dieses Videoformat nicht abspielen.");
+    });
+    adRemoveButton.addEventListener("click", async () => {
+      try {
+        await deleteAdMedia();
+      } catch (error) {
+        console.error("Could not remove the saved advertisement media:", error);
+        toast("Medium konnte nicht aus dem lokalen Speicher entfernt werden.");
+        return;
+      }
+      adVideo.pause();
+      adVideo.removeAttribute("src");
+      adVideo.load();
+      adImage.removeAttribute("src");
+      adOverlay.classList.remove("visible", "image-mode");
+      if (adObjectUrl) URL.revokeObjectURL(adObjectUrl);
+      adObjectUrl = null;
+      adFileInput.value = "";
+      adFileName.textContent = "Noch kein Medium ausgewählt";
+      adPlaybackState.textContent = "Keine Datei";
+      adPlayButton.disabled = true;
+      adPlayButton.hidden = false;
+      adRemoveButton.disabled = true;
+      adPlayButton.textContent = "▶ Video abspielen";
+      toast("Werbemedium entfernt.");
+    });
+    function updateAdSize() {
+      adOverlay.style.width = `${adWidth.value}%`;
+      adOverlay.style.height = `${adHeight.value}%`;
+      document.getElementById("ad-width-value").textContent = `${adWidth.value}%`;
+      document.getElementById("ad-height-value").textContent = `${adHeight.value}%`;
+      localStorage.setItem("luma-ad-width", adWidth.value);
+      localStorage.setItem("luma-ad-height", adHeight.value);
+    }
+    restoreSlider("luma-ad-width", adWidth, 15, 85);
+    restoreSlider("luma-ad-height", adHeight, 15, 80);
+    updateAdSize();
+    adWidth.addEventListener("input", updateAdSize);
+    adHeight.addEventListener("input", updateAdSize);
+
+    loadAdMedia().then((savedAd) => {
+      if (savedAd?.blob instanceof Blob) applyAdMedia(savedAd.blob, savedAd.name || "Werbemedium");
+    }).catch((error) => {
+      console.error("Could not restore the saved advertisement media:", error);
+      toast("Das gespeicherte Werbemedium konnte nicht geladen werden.");
+    });
+
     const chatOverlay = document.querySelector(".stream-chat-overlay");
     const chatColor = document.getElementById("chat-color");
     const chatWidth = document.getElementById("chat-width");
@@ -1328,10 +1654,12 @@
       localStorage.setItem("luma-chat-visible", String(chatOverlayToggle.checked));
     });
 
-    function enableDragging(element, storageKey) {
+    function enableDragging(element, storageKey, handleSelector = null) {
       let dragOffset = null;
       element.addEventListener("pointerdown", (event) => {
-        if (event.button !== 0 || event.target.closest("button, input")) return;
+        if (event.button !== 0 || event.target.closest("button, input, video, .ad-resize-handle")) return;
+        if (element === adOverlay && !adOverlay.classList.contains("image-mode") && !event.target.closest(".ad-overlay-header")) return;
+        if (handleSelector && !event.target.closest(handleSelector)) return;
         const previewBounds = document.getElementById("preview").getBoundingClientRect();
         const elementBounds = element.getBoundingClientRect();
         element.style.left = `${elementBounds.left - previewBounds.left}px`;
@@ -1378,6 +1706,59 @@
     }
     enableDragging(chatOverlay, "luma-chat-position");
     enableDragging(alertOverlay, "luma-alert-position");
+    enableDragging(adOverlay, "luma-ad-position");
+
+    const adResizeHandle = document.getElementById("ad-resize-handle");
+    let resizeStart = null;
+    adResizeHandle.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 || !adOverlay.classList.contains("visible")) return;
+      const previewBounds = document.getElementById("preview").getBoundingClientRect();
+      const adBounds = adOverlay.getBoundingClientRect();
+      adOverlay.style.left = `${adBounds.left - previewBounds.left}px`;
+      adOverlay.style.top = `${adBounds.top - previewBounds.top}px`;
+      adOverlay.style.right = "auto";
+      adOverlay.style.bottom = "auto";
+      resizeStart = {
+        x: event.clientX,
+        y: event.clientY,
+        width: adBounds.width,
+        height: adBounds.height,
+        previewBounds
+      };
+      adResizeHandle.setPointerCapture(event.pointerId);
+      event.preventDefault();
+    });
+    adResizeHandle.addEventListener("pointermove", (event) => {
+      if (!resizeStart) return;
+      const width = Math.max(150, Math.min(resizeStart.previewBounds.width * 0.85, resizeStart.width + event.clientX - resizeStart.x));
+      const height = Math.max(110, Math.min(resizeStart.previewBounds.height * 0.8, resizeStart.height + event.clientY - resizeStart.y));
+      const widthPercent = Math.max(15, Math.min(85, Math.round(width / resizeStart.previewBounds.width * 100)));
+      const heightPercent = Math.max(15, Math.min(80, Math.round(height / resizeStart.previewBounds.height * 100)));
+      adWidth.value = String(widthPercent);
+      adHeight.value = String(heightPercent);
+      updateAdSize();
+    });
+    adResizeHandle.addEventListener("pointerup", (event) => {
+      if (!resizeStart) return;
+      const previewBounds = document.getElementById("preview").getBoundingClientRect();
+      localStorage.setItem("luma-ad-position", JSON.stringify({
+        x: adOverlay.offsetLeft / previewBounds.width,
+        y: adOverlay.offsetTop / previewBounds.height
+      }));
+      resizeStart = null;
+      if (adResizeHandle.hasPointerCapture(event.pointerId)) adResizeHandle.releasePointerCapture(event.pointerId);
+    });
+    adResizeHandle.addEventListener("pointercancel", () => { resizeStart = null; });
+    adResizeHandle.addEventListener("keydown", (event) => {
+      if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) return;
+      event.preventDefault();
+      const step = event.shiftKey ? 10 : 3;
+      if (event.key === "ArrowLeft") adWidth.value = String(Math.max(15, Number(adWidth.value) - step));
+      if (event.key === "ArrowRight") adWidth.value = String(Math.min(85, Number(adWidth.value) + step));
+      if (event.key === "ArrowUp") adHeight.value = String(Math.max(15, Number(adHeight.value) - step));
+      if (event.key === "ArrowDown") adHeight.value = String(Math.min(80, Number(adHeight.value) + step));
+      updateAdSize();
+    });
 
     const alertTextInput = document.getElementById("alert-text-input");
     const alertText = document.getElementById("stream-alert-text");
