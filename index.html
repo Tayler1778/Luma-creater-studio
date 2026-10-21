@@ -1247,7 +1247,9 @@
         const config = await response.json();
         if (!config.configured) {
           document.getElementById("oauth-help-text").textContent =
-            "Lege im Projektordner eine .env-Datei mit deiner Twitch Client-ID und deinem Client-Secret an. Kopiere dafür .env.example und starte danach node server.mjs neu.";
+            window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+              ? "Twitch ist lokal noch nicht eingerichtet. Lege im Projektordner neben server.mjs eine .env-Datei an, trage dort TWITCH_CLIENT_ID und TWITCH_CLIENT_SECRET ein und starte node server.mjs neu."
+              : "Twitch ist für diese Webseite noch nicht eingerichtet. Hinterlege bei deinem Hosting-Anbieter in den Umgebungsvariablen der Node.js-App TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET und TWITCH_REDIRECT_URI=https://luma.blocknova.de/auth/twitch/callback. Eine .env-Datei auf deinem PC wird nicht auf die Webseite übertragen. Starte die App nach dem Speichern neu.";
           document.getElementById("modal-backdrop").classList.add("open");
           return;
         }
